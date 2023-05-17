@@ -1,0 +1,2 @@
+Manifest-Version: 1.0
+Export-Package: com.itextpdf="5.5.13.3"
