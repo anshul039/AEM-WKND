@@ -1,37 +1,18 @@
-/*
- *  Copyright 2015 Adobe Systems Incorporated
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package com.adobe.aem.guides.wknd.core.servlets;
 
-import static com.day.crx.JcrConstants.JCR_DATA;
-
 import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.jcr.Binary;
-import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.ValueFactory;
-import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -39,9 +20,12 @@ import javax.servlet.ServletException;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -54,13 +38,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.day.cq.dam.api.Asset;
 import com.day.cq.dam.api.AssetManager;
 import com.day.cq.mailer.MessageGateway;
 import com.day.cq.mailer.MessageGatewayService;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  * Servlet that writes some sample content into the response. It is mounted for
@@ -78,15 +59,23 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 	private MessageGatewayService messageGatewayService;
 
 	private ResourceResolver resourceResolver;
+	
+	private AssetManager assetManager;
+	
+	private Session session;
 
 	private static Logger log = LoggerFactory.getLogger(EmailServlet.class);
+	
+    private static SimpleDateFormat PDF_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 
 	@Override
 	protected void doGet(final SlingHttpServletRequest req, final SlingHttpServletResponse resp)
 			throws ServletException, IOException {
+		log.debug("inside EmailServlet");
 		resourceResolver = req.getResourceResolver();
 		String field1 = req.getParameter("field1");
 		String field2 = req.getParameter("field2");
+		log.debug("field1 : {}, field2 : {}", field1, field2);
 		JSONObject jsonResponse = new JSONObject();
 		boolean sent = false;
 		try {
@@ -100,9 +89,13 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 		} catch (EmailException e) {
 			log.error("Email Exception : {0}", e);
 			resp.setStatus(500);
-		} catch (MessagingException e) {
+		} catch(NullPointerException e) {
 			e.printStackTrace();
-			log.error("MessagingException Exception : {0}", e);
+			log.error("NullPointerException Exception : {0}", e);
+			resp.setStatus(500);
+		} catch(FileNotFoundException e) {
+			e.printStackTrace();
+			log.error("FileNotFoundException Exception : {0}", e);
 			resp.setStatus(500);
 		} catch (PathNotFoundException e) {
 			e.printStackTrace();
@@ -112,11 +105,7 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 			e.printStackTrace();
 			log.error("RepositoryException Exception : {0}", e);
 			resp.setStatus(500);
-		} catch (DocumentException e) {
-			e.printStackTrace();
-			log.error("DocumentException Exception : {0}", e);
-			resp.setStatus(500);
-		}
+		} 
 		try {
 			jsonResponse.put("result", sent ? "done" : "something went wrong");
 		} catch (JSONException e) {
@@ -128,75 +117,16 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 	}
 
 	private void sendEmail(String subjectLine, String msgBody, String[] recipients, String attachmentData)
-			throws EmailException, IOException, MessagingException, PathNotFoundException, RepositoryException, DocumentException {
+			throws EmailException, IOException, RepositoryException, NullPointerException {
 		HtmlEmail email = new HtmlEmail();
 		for (String recipient : recipients) {
 			email.addTo(recipient, recipient);
 		}
 		email.setSubject(subjectLine);
 		email.setMsg(msgBody);
-
-		String path = "/content/dam/pdfs/retail/test.pdf";
-
-		Resource rs = resourceResolver.getResource(path);
-		if (null == rs) {
-			Resource res1 = resourceResolver.getResource("/content/dam/pdfs/retail");
-			if (null == res1) {
-				Resource res2 = resourceResolver.getResource("/content/dam/pdfs");
-				if (null == res2) {
-					Resource res3 = resourceResolver.getResource("/content/dam");
-					resourceResolver.create(res3, "pdfs", null);
-					resourceResolver.commit();
-				}
-				resourceResolver.create(res2, "retail", null);
-				resourceResolver.commit();
-			}
-		}
-		createPdf(attachmentData, path);
-		Session session = resourceResolver.adaptTo(Session.class);
-		AssetManager assetManager = resourceResolver.adaptTo(AssetManager.class);
-		InputStream stream = new ByteArrayInputStream(attachmentData.getBytes(StandardCharsets.UTF_8));
-		final ValueFactory valueFactory = session.getValueFactory();
-		final Binary binary = valueFactory.createBinary(stream);
-
-		assetManager.createOrReplaceAsset(path, binary, "application/pdf", true);
-		session.save();
-		
-//		Node resNode = session.getNode(path + "/jcr:content/renditions/original/jcr:content");
-//		if(null == resNode) {
-//			log.error("Node does not exist");
-//		}
-//		resNode.setProperty("jcr:mimeType", "application/pdf");
-//		resNode.setProperty("jcr:data", attachmentData);
-//		session.save();
-//		EmailAttachment attachment = new EmailAttachment();
-//		attachment.setPath(path);
-//		attachment.setDisposition(EmailAttachment.ATTACHMENT);
-//		attachment.setDescription("Sample Pdf data");
-//		attachment.setName("sample pdf");
-//		email.attach(attachment);
-		
-//		Resource imageNodeRes = resourceResolver.getResource(path);
-//		Node imageNode=imageNodeRes.adaptTo(Node.class);
-//		Node contentNode = imageNode.getNode("jcr:content");
-//		Binary imageBinary = contentNode.getProperty("jcr:data").getBinary();
-//		InputStream imageStream = imageBinary.getStream();
-		
-//		Resource res = resourceResolver.getResource(path + "/jcr:content/renditions/original");
-		ByteArrayDataSource imageDS = new ByteArrayDataSource(stream,"application/pdf");
-//		ByteArrayDataSource imageDS = getByteArrayDataSource(res);
-		email.attach(imageDS,"Sample PDF","Sample Description");
-		
-//		InputStream stream = new ByteArrayInputStream(attachmentData.getBytes(Charset.forName("UTF-8")));
-//		MimeMultipart multipart = new MimeMultipart();
-//		BodyPart bodyPart = new MimeBodyPart(stream);
-//		multipart.addBodyPart(bodyPart);
-
-//		final MailTemplate mailTemplate = MailTemplate.create(path, session);
-//		Map<String, String> params = new HashMap();
-//		params.put("importEntity", "Entity1");
-//		HtmlEmail email2 = mailTemplate.getEmail(StrLookup.mapLookup(params), HtmlEmail.class);
-
+		Asset asset = createPdf(attachmentData);
+		ByteArrayDataSource imageDS = new ByteArrayDataSource(asset.getOriginal().getStream(),"application/pdf");
+		email.attach(imageDS,"Sample PDF","Sample Description","inline");
 		MessageGateway<Email> messageGateway = messageGatewayService.getGateway(HtmlEmail.class);
 		if (messageGateway != null) {
 			log.debug("sending out email");
@@ -204,16 +134,46 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 		} else {
 			log.error("The message gateway could not be retrieved.");
 		}
+		session.save();
+		session.logout();
 	}
 	
-	private PdfWriter createPdf(String attachmentData, String path) throws FileNotFoundException, DocumentException {
-		Document document = new Document();
-		PdfWriter pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(path));
-		document.open();
-        document.add(new Paragraph(attachmentData));
-        document.close();
-        pdfWriter.close();
-//        document.
-        return pdfWriter;
+	private Asset createPdf(String attachmentData) throws IOException, UnsupportedRepositoryOperationException, RepositoryException {
+		PDDocument document = new PDDocument();
+
+		// Create a new page
+		PDPage page = new PDPage();
+		document.addPage(page);
+
+		// Create a content stream for the page
+		PDPageContentStream contentStream = new PDPageContentStream(document, page);
+
+		// Write some text to the content stream
+		contentStream.beginText();
+		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+		contentStream.newLineAtOffset(100, 700);
+		contentStream.showText(attachmentData);
+		contentStream.endText();
+		contentStream.close();
+
+		// Save the PDF document to a ByteArrayOutputStream
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		document.save(outputStream);
+		document.close();
+		
+		// Adapt the ResourceResolver to a Session
+		session = resourceResolver.adaptTo(Session.class);
+
+		// Convert the ByteArrayOutputStream to a Binary
+		final ValueFactory valueFactory = session.getValueFactory();
+		Binary binary = valueFactory.createBinary(new ByteArrayInputStream(outputStream.toByteArray()));
+
+		// Specify the DAM path where you want to store the PDF
+        String assetPath = "/content/dam/pdfs/retail/test-" + PDF_DATE_FORMAT.format(new Date()) + ".pdf";
+
+		// Create or replace the asset in the DAM
+        assetManager = resourceResolver.adaptTo(AssetManager.class);
+		return assetManager.createOrReplaceAsset(assetPath, binary, "application/pdf", true);
 	}
+	
 }

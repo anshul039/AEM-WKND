@@ -5,7 +5,7 @@
 <entry key="allowIndexDefinitions">false</entry>
 <entry key="acHandling">merge</entry>
 <entry key="dependencies-locations">com.adobe.aem.guides.wknd:wknd.ui.apps:1.0.0-SNAPSHOT=maven:com.adobe.aem.guides.wknd:wknd.ui.apps:1.0.0-SNAPSHOT:zip</entry>
-<entry key="created">2023-05-16T07:15:56.283Z</entry>
+<entry key="created">2023-05-25T07:03:24.209Z</entry>
 <entry key="groupId">com.adobe.aem.guides.wknd</entry>
 <entry key="description">UI content package for WKND Sites Project</entry>
 <entry key="version">1.0.0-SNAPSHOT</entry>

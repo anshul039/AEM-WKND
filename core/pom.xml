@@ -151,5 +151,17 @@ Import-Package: javax.annotation;version=0.0.0,*
 		    <groupId>com.itextpdf</groupId>
 		    <artifactId>itextpdf</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>commons-logging</groupId>
+		    <artifactId>commons-logging</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.pdfbox</groupId>
+		    <artifactId>pdfbox</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>com.day.cq</groupId>
+		    <artifactId>cq-replication</artifactId>
+		</dependency>
     </dependencies>
 </project>

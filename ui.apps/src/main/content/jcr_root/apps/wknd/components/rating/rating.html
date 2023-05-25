@@ -1,0 +1,20 @@
+<html>
+<body>
+<div>
+	<p> Did you like the page?</p>
+	<input type="radio" id="yes" name="page_rating" onclick="handleChange(this);" value="Y">
+    <label for="yes">Yes</label><br>
+    <input type="radio" id="no" name="page_rating" onclick="handleChange(this);" value="N">
+    <label for="no">No</label><br>
+</div>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-72067721-1"></script>
+ <script>
+window.dataLayer = window.dataLayer || [];
+
+function gtag() {dataLayer.push(arguments);}
+gtag('js', new Date());
+function handleChange(myRadio) {gtag('set',{'rating':myRadio.value});}
+</script>
+
+</body>
+</html>

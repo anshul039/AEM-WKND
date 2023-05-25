@@ -1,0 +1,26 @@
+<html>
+<body>
+<div>
+	<label>Field 1</label>
+	<input class="form-text" type="text" id="field1" name="field1"/>
+</div>
+
+<div>
+	<label>Field 2</label>
+	<input class="form-text" type="text" id="field2" name="field2"/>
+</div>
+<div id="div1"></div>
+<button onClick="handleClick()">Button</button>
+
+<script>
+
+function handleClick() {
+	var field1 = document.getElementById('field1').value;
+	var field2 = document.getElementById('field2').value;
+	fetch("/bin/wknd/sendEmail?field1="+field1+"&field2="+field2, 
+			{method: 'GET'})
+	.then(response => {console.log(response)})
+}
+</script>
+</body>
+</html>
