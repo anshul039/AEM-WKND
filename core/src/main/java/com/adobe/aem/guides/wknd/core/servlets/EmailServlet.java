@@ -59,14 +59,14 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 	private MessageGatewayService messageGatewayService;
 
 	private ResourceResolver resourceResolver;
-	
+
 	private AssetManager assetManager;
-	
+
 	private Session session;
 
 	private static Logger log = LoggerFactory.getLogger(EmailServlet.class);
-	
-    private static SimpleDateFormat PDF_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+
+	private static SimpleDateFormat PDF_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 
 	@Override
 	protected void doGet(final SlingHttpServletRequest req, final SlingHttpServletResponse resp)
@@ -89,11 +89,11 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 		} catch (EmailException e) {
 			log.error("Email Exception : {0}", e);
 			resp.setStatus(500);
-		} catch(NullPointerException e) {
+		} catch (NullPointerException e) {
 			e.printStackTrace();
 			log.error("NullPointerException Exception : {0}", e);
 			resp.setStatus(500);
-		} catch(FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			log.error("FileNotFoundException Exception : {0}", e);
 			resp.setStatus(500);
@@ -105,7 +105,7 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 			e.printStackTrace();
 			log.error("RepositoryException Exception : {0}", e);
 			resp.setStatus(500);
-		} 
+		}
 		try {
 			jsonResponse.put("result", sent ? "done" : "something went wrong");
 		} catch (JSONException e) {
@@ -125,11 +125,10 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 		email.setSubject(subjectLine);
 		email.setMsg(msgBody);
 		Asset asset = createPdf(attachmentData);
-		ByteArrayDataSource imageDS = new ByteArrayDataSource(asset.getOriginal().getStream(),"application/pdf");
-		email.attach(imageDS,"Sample PDF","Sample Description","inline");
+		ByteArrayDataSource imageDS = new ByteArrayDataSource(asset.getOriginal().getStream(), "application/pdf");
+		email.attach(imageDS, "Sample PDF", "Sample Description", "inline");
 		MessageGateway<Email> messageGateway = messageGatewayService.getGateway(HtmlEmail.class);
 		if (messageGateway != null) {
-			log.debug("sending out email");
 			messageGateway.send(email);
 		} else {
 			log.error("The message gateway could not be retrieved.");
@@ -137,43 +136,28 @@ public class EmailServlet extends SlingSafeMethodsServlet {
 		session.save();
 		session.logout();
 	}
-	
-	private Asset createPdf(String attachmentData) throws IOException, UnsupportedRepositoryOperationException, RepositoryException {
-		PDDocument document = new PDDocument();
 
-		// Create a new page
+	private Asset createPdf(String attachmentData)
+			throws IOException, RepositoryException {
+		PDDocument document = new PDDocument();
 		PDPage page = new PDPage();
 		document.addPage(page);
-
-		// Create a content stream for the page
 		PDPageContentStream contentStream = new PDPageContentStream(document, page);
-
-		// Write some text to the content stream
 		contentStream.beginText();
 		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
 		contentStream.newLineAtOffset(100, 700);
 		contentStream.showText(attachmentData);
 		contentStream.endText();
 		contentStream.close();
-
-		// Save the PDF document to a ByteArrayOutputStream
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		document.save(outputStream);
 		document.close();
-		
-		// Adapt the ResourceResolver to a Session
 		session = resourceResolver.adaptTo(Session.class);
-
-		// Convert the ByteArrayOutputStream to a Binary
 		final ValueFactory valueFactory = session.getValueFactory();
 		Binary binary = valueFactory.createBinary(new ByteArrayInputStream(outputStream.toByteArray()));
-
-		// Specify the DAM path where you want to store the PDF
-        String assetPath = "/content/dam/pdfs/retail/test-" + PDF_DATE_FORMAT.format(new Date()) + ".pdf";
-
-		// Create or replace the asset in the DAM
-        assetManager = resourceResolver.adaptTo(AssetManager.class);
+		String assetPath = "/content/dam/pdfs/retail/test-" + PDF_DATE_FORMAT.format(new Date()) + ".pdf";
+		assetManager = resourceResolver.adaptTo(AssetManager.class);
 		return assetManager.createOrReplaceAsset(assetPath, binary, "application/pdf", true);
 	}
-	
+
 }

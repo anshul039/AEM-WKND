@@ -621,5 +621,4 @@ Bundle-DocURL:
 			</dependency>						
         </dependencies>
     </dependencyManagement>
-
 </project>

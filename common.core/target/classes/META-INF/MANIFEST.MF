@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1684998176584
+Bnd-LastModified: 1685420859561
 Build-Jdk-Spec: 11
 Bundle-ClassPath: .,org.apache.sling.api-2.25.4.jar,annotations-23.0.0.j
  ar,itextpdf-5.5.13.jar,commons-logging-1.2.jar,pdfbox-2.0.8.jar,fontbox

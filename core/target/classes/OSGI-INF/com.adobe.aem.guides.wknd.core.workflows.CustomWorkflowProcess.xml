@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.adobe.aem.guides.wknd.core.workflows.CustomWorkflowProcess">
+  <property name="service.description" type="String" value="Custom Process Step to execute Metadata Arguments functionality"/>
+  <property name="process.label" type="String" value="Custom Workflow Process Step"/>
+  <service>
+    <provide interface="com.adobe.granite.workflow.exec.WorkflowProcess"/>
+  </service>
+  <implementation class="com.adobe.aem.guides.wknd.core.workflows.CustomWorkflowProcess"/>
+</scr:component>

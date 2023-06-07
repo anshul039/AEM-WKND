@@ -36,14 +36,16 @@ Import-Package: javax.annotation;version="0.0.0",com.adobe.aem.guides.
 Private-Package: com.adobe.aem.guides.wknd.core.workflows
 Provide-Capability: osgi.service;objectClass:List<String>="com.adobe.g
  ranite.workflow.exec.ParticipantStepChooser";uses:="com.adobe.granite
- .workflow.exec",osgi.service;objectClass:List<String>="java.lang.Runn
- able",osgi.service;objectClass:List<String>="javax.servlet.Filter";us
- es:="javax.servlet",osgi.service;objectClass:List<String>="javax.serv
- let.Servlet";uses:="javax.servlet",osgi.service;objectClass:List<Stri
- ng>="org.apache.sling.api.resource.observation.ResourceChangeListener
- ";uses:="org.apache.sling.api.resource.observation",osgi.service;obje
- ctClass:List<String>="org.osgi.service.event.EventHandler";uses:="org
- .osgi.service.event"
+ .workflow.exec",osgi.service;objectClass:List<String>="com.adobe.gran
+ ite.workflow.exec.WorkflowProcess";uses:="com.adobe.granite.workflow.
+ exec",osgi.service;objectClass:List<String>="java.lang.Runnable",osgi
+ .service;objectClass:List<String>="javax.servlet.Filter";uses:="javax
+ .servlet",osgi.service;objectClass:List<String>="javax.servlet.Servle
+ t";uses:="javax.servlet",osgi.service;objectClass:List<String>="org.a
+ pache.sling.api.resource.observation.ResourceChangeListener";uses:="o
+ rg.apache.sling.api.resource.observation",osgi.service;objectClass:Li
+ st<String>="org.osgi.service.event.EventHandler";uses:="org.osgi.serv
+ ice.event"
 Require-Capability: osgi.service;filter:="(objectClass=com.day.cq.mail
  er.MessageGatewayService)";effective:=active,osgi.extender;filter:="(
  &(osgi.extender=osgi.component)(version>=1.5.0)(!(version>=2.0.0)))",
@@ -55,7 +57,8 @@ Service-Component: OSGI-INF/com.adobe.aem.guides.wknd.core.filters.Log
  chedulers.SimpleScheduledTask.xml,OSGI-INF/com.adobe.aem.guides.wknd.
  core.servlets.EmailServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.cor
  e.servlets.SimpleServlet.xml,OSGI-INF/com.adobe.aem.guides.wknd.core.
- workflows.CustomParticipantWorkflow.xml
+ workflows.CustomParticipantWorkflow.xml,OSGI-INF/com.adobe.aem.guides
+ .wknd.core.workflows.CustomWorkflowProcess.xml
 Sling-Model-Classes: com.adobe.aem.guides.wknd.core.models.HelloWorldM
  odel
 

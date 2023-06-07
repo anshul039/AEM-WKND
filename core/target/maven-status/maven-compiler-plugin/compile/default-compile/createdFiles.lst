@@ -4,6 +4,7 @@ com\adobe\aem\guides\wknd\core\listeners\PagePublishListener.class
 com\adobe\aem\guides\wknd\core\schedulers\SimpleScheduledTask$Config.class
 com\adobe\aem\guides\wknd\core\listeners\package-info.class
 com\adobe\aem\guides\wknd\core\servlets\EmailServlet.class
+com\adobe\aem\guides\wknd\core\workflows\CustomWorkflowProcess.class
 com\adobe\aem\guides\wknd\core\models\HelloWorldModel.class
 com\adobe\aem\guides\wknd\core\servlets\SimpleServlet.class
 com\adobe\aem\guides\wknd\core\listeners\SimpleResourceListener.class

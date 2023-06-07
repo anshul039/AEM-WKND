@@ -4,6 +4,7 @@ D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\filters\p
 D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\servlets\package-info.java
 D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\servlets\SimpleServlet.java
 D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\filters\LoggingFilter.java
+D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\workflows\CustomWorkflowProcess.java
 D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\listeners\package-info.java
 D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\schedulers\package-info.java
 D:\wknd-project\wknd\core\src\main\java\com\adobe\aem\guides\wknd\core\listeners\SimpleResourceListener.java
